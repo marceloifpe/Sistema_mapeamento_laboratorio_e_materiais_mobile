@@ -1,0 +1,72 @@
+def localPropertiesFile = rootProject.file('local.properties')
+if (!localPropertiesFile.exists()) {
+    throw new GradleException("local.properties file not found. Please create it with the flutter sdk path.")
+}
+
+def localProperties = new Properties()
+localPropertiesFile.withReader('UTF-8') { reader ->
+    localProperties.load(reader)
+}
+
+def flutterRoot = localProperties.getProperty('flutter.sdk')
+if (flutterRoot == null) {
+    throw new GradleException("Flutter sdk not found")
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1'
+}
+
+apply plugin: "com.android.application"
+apply plugin: 'com.google.gms.google-services'
+apply plugin: "kotlin-android"
+apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+
+android {
+    namespace = "com.example.sistema_mapeamento_de_materiais"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId "com.example.sistema_mapeamento_de_materiais"
+        minSdkVersion 24
+        targetSdk flutter.targetSdkVersion
+        versionCode flutterVersionCode.toInteger() // Corrigido para converter para Integer
+        versionName flutterVersionName
+        multiDexEnabled true
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation("com.google.firebase:firebase-analytics")
+    
+    
+    // Adicione outras dependências conforme necessário
+}

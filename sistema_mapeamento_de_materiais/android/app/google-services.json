@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "659608837270",
+    "project_id": "sistemamapeamentolaboratorio",
+    "storage_bucket": "sistemamapeamentolaboratorio.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:659608837270:android:5027fa1056dfcb23f436b7",
+        "android_client_info": {
+          "package_name": "com.example.sistema_mapeamento_de_materiais"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHzyil9Uda8yYexcgQ7PNFQjKxEzL0SJE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
