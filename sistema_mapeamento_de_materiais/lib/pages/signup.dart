@@ -1,7 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:random_string/random_string.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/home.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/login.dart';
+import 'package:sistema_mapeamento_de_materiais/services/database.dart';
+import 'package:sistema_mapeamento_de_materiais/services/shared_pref.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -31,6 +34,16 @@ class _SignUpState extends State<SignUp> {
       try {
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(email: mail!, password: password!);
+        String id = randomAlphaNumeric(10);
+        await SharedpreferenceHelper().saveUserName(namecontroller.text);
+        await SharedpreferenceHelper().saveUserEmail(emailcontroller.text);
+        await SharedpreferenceHelper().saveUserId(id);
+        Map<String, dynamic> userInfoMap = {
+          "Nome": namecontroller.text,
+          "Email": emailcontroller.text,
+          "Id": id,
+        };
+        await DatabaseMethods().addUserDetails(userInfoMap, id);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
           "Registrado com Sucesso!",
@@ -38,7 +51,8 @@ class _SignUpState extends State<SignUp> {
         )));
         Navigator.push(
             // ignore: use_build_context_synchronously
-            context, MaterialPageRoute(builder: (context) => Home()));
+            context,
+            MaterialPageRoute(builder: (context) => Home()));
       } on FirebaseAuthException catch (e) {
         if (e.code == 'weak-password') {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(

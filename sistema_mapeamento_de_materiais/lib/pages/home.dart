@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/booking.dart';
+import 'package:sistema_mapeamento_de_materiais/services/shared_pref.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -9,6 +10,28 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  String? name;
+
+getthedatafromsharedpref()async{
+  name= await SharedpreferenceHelper().getUserName();
+  setState(() {
+    
+  });
+}
+
+getontheload()async{
+  await getthedatafromsharedpref();
+  setState(() {
+    
+  });
+}
+
+@override
+  void initState() {
+    getontheload();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,7 +55,7 @@ class _HomeState extends State<Home> {
                           fontWeight: FontWeight.w500),
                     ),
                     Text(
-                      "Usuário",
+                      name ?? "Usuário",
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 24.0,
@@ -75,7 +98,7 @@ class _HomeState extends State<Home> {
                   fit: FlexFit.tight,
                   child: GestureDetector(
                     onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=> Booking(service: "Projetor")));
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=> Booking(service: "Material")));
                     },
                     child: Container(
                         height: 150,
@@ -91,7 +114,7 @@ class _HomeState extends State<Home> {
                               height: 10.0,
                             ),
                             Text(
-                              "Projetor",
+                              "Material",
                               style: TextStyle(
                                   color: Colors.black,
                                   fontSize: 18.0,
@@ -157,7 +180,7 @@ class _HomeState extends State<Home> {
                             height: 10.0,
                           ),
                           Text(
-                            "Ver Reserva Projetor",
+                            "Ver Reserva Material",
                             style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 18.0,
