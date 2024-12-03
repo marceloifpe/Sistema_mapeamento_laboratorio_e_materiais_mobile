@@ -55,7 +55,7 @@ getontheload()async{
                           fontWeight: FontWeight.w500),
                     ),
                     Text(
-                      name ?? "Usuário",
+                      "Seja Bem-vindo Professor",
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 24.0,
