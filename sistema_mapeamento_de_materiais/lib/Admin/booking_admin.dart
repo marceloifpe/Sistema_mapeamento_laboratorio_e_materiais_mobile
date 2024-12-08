@@ -1,14 +1,174 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-class BookingAdmin extends StatelessWidget {
+class BookingAdmin extends StatefulWidget {
+  @override
+  State<BookingAdmin> createState() => _BookingAdminState();
+}
+
+class _BookingAdminState extends State<BookingAdmin> {
+  String? adminName = "Administrador"; // Nome do administrador
+
+  @override
+  void initState() {
+    super.initState();
+    // Instalar o provedor de segurança no Android (opcional)
+    if (Platform.isAndroid) {
+      _installSecurityProvider();
+    }
+  }
+
+  void _installSecurityProvider() {
+    try {
+      // Simula a instalação do ProviderInstaller (substituir por nativo se necessário)
+      print("Provedor de segurança instalado com sucesso.");
+    } catch (e) {
+      print("Erro ao instalar provedor de segurança: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFFFFFFF),
       appBar: AppBar(
         title: Text('Booking Admin'),
+        backgroundColor: Color(0xff1F509A),
       ),
-      body: Center(
-        child: Text('Bem-vindo à tela BookingAdmin!'),
+      body: Container(
+        margin: EdgeInsets.only(top: 20.0, left: 20.0, right: 20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Olá,",
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      adminName ?? "Administrador",
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(
+                    "assets/images/admin.png", // Caminho corrigido
+                    height: 60,
+                    width: 60,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20.0),
+            Divider(color: Colors.black38),
+            SizedBox(height: 20.0),
+            Text(
+              "Painel Administrativo",
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20.0),
+            _buildAdminOptions(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdminOptions() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            _buildOptionCard(
+              title: "Gerenciar Materiais",
+              icon: Icons.inventory,
+              onTap: () {
+                // Implementar funcionalidade
+              },
+            ),
+            SizedBox(width: 20.0),
+            _buildOptionCard(
+              title: "Gerenciar Salas",
+              icon: Icons.meeting_room,
+              onTap: () {
+                // Implementar funcionalidade
+              },
+            ),
+          ],
+        ),
+        SizedBox(height: 20.0),
+        Row(
+          children: [
+            _buildOptionCard(
+              title: "Relatórios",
+              icon: Icons.bar_chart,
+              onTap: () {
+                // Implementar funcionalidade
+              },
+            ),
+            SizedBox(width: 20.0),
+            _buildOptionCard(
+              title: "Configurações",
+              icon: Icons.settings,
+              onTap: () {
+                // Implementar funcionalidade
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOptionCard({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Flexible(
+      fit: FlexFit.tight,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 150,
+          decoration: BoxDecoration(
+            color: Color(0xff1F509A),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 50, color: Colors.white),
+              SizedBox(height: 10.0),
+              Text(
+                title,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

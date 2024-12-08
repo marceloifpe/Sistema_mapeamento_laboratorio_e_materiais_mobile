@@ -161,7 +161,6 @@ class _MyWidgetState extends State<AdminLogin> {
     super.dispose();
   }
 
-  // Movendo a função loginAdmin para dentro da classe _MyWidgetState
   void _loginAdmin() async {
     try {
       if (nomedeusuariocontroller.text.trim().isEmpty ||
@@ -184,10 +183,17 @@ class _MyWidgetState extends State<AdminLogin> {
           idEncontrado = true;
 
           if (adminData['Senha'] == passwordcontroller.text.trim()) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => BookingAdmin()),
-            );
+            // Log bem-sucedido
+            print("Login bem-sucedido! Redirecionando...");
+
+            // Garantindo a navegação no contexto correto
+            Future.delayed(Duration(seconds: 1), () {
+              // Usando `Navigator.of(context)` para a navegação
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => BookingAdmin()),
+              );
+            });
+
             return;
           } else {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
