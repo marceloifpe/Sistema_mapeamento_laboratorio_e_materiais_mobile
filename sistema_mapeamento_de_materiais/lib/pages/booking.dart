@@ -39,8 +39,12 @@ class _BookingState extends State<Booking> {
 
   Future<void> fetchLocationData() async {
     try {
-      QuerySnapshot locationSnapshot = await FirebaseFirestore.instance.collection("salas").get();
-      locationList = locationSnapshot.docs.map((doc) => doc['local'] as String).toSet().toList();
+      QuerySnapshot locationSnapshot =
+          await FirebaseFirestore.instance.collection("salas").get();
+      locationList = locationSnapshot.docs
+          .map((doc) => doc['local'] as String)
+          .toSet()
+          .toList();
       setState(() {});
     } catch (e) {
       print("Erro ao buscar dados de locais: $e");
@@ -53,7 +57,9 @@ class _BookingState extends State<Booking> {
           .collection("salas")
           .where('local', isEqualTo: location)
           .get();
-      roomList = roomSnapshot.docs.map((doc) => doc['nome_da_sala'] as String).toList();
+      roomList = roomSnapshot.docs
+          .map((doc) => doc['nome_da_sala'] as String)
+          .toList();
       if (roomList.isEmpty) {
         selectedRoom = null; // Reset selected room if no rooms found
       }
@@ -91,7 +97,9 @@ class _BookingState extends State<Booking> {
   }
 
   Future<void> _selectDateAndTime(BuildContext context, int dateType) async {
-    DateTime initialDate = dateType == 1 ? _selectedDate : (dateType == 2 ? _requestDate : _returnDate);
+    DateTime initialDate = dateType == 1
+        ? _selectedDate
+        : (dateType == 2 ? _requestDate : _returnDate);
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
@@ -106,11 +114,14 @@ class _BookingState extends State<Booking> {
       if (pickedTime != null) {
         setState(() {
           if (dateType == 1) {
-            _selectedDate = DateTime(picked.year, picked.month, picked.day, pickedTime.hour, pickedTime.minute);
+            _selectedDate = DateTime(picked.year, picked.month, picked.day,
+                pickedTime.hour, pickedTime.minute);
           } else if (dateType == 2) {
-            _requestDate = DateTime(picked.year, picked.month, picked.day, pickedTime.hour, pickedTime.minute);
+            _requestDate = DateTime(picked.year, picked.month, picked.day,
+                pickedTime.hour, pickedTime.minute);
           } else {
-            _returnDate = DateTime(picked.year, picked.month, picked.day, pickedTime.hour, pickedTime.minute);
+            _returnDate = DateTime(picked.year, picked.month, picked.day,
+                pickedTime.hour, pickedTime.minute);
           }
         });
       }
@@ -127,7 +138,8 @@ class _BookingState extends State<Booking> {
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("Reserva de ${widget.service}", style: TextStyle(color: Colors.white)),
+        title: Text("Reserva de ${widget.service}",
+            style: TextStyle(color: Colors.white)),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -137,7 +149,10 @@ class _BookingState extends State<Booking> {
             children: [
               Text(
                 "Vamos fazer a Reserva",
-                style: TextStyle(color: Colors.white70, fontSize: 28.0, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 28.0,
+                    fontWeight: FontWeight.w500),
               ),
               SizedBox(height: 20.0),
               Image.asset(
@@ -149,10 +164,14 @@ class _BookingState extends State<Booking> {
               SizedBox(height: 20.0),
               Text(
                 widget.service,
-                style: TextStyle(color: Colors.white, fontSize: 25.0, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 25.0,
+                    fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20.0),
-              _buildDropdown("Escolha o Local", locationList, selectedLocation, (value) {
+              _buildDropdown("Escolha o Local", locationList, selectedLocation,
+                  (value) {
                 setState(() {
                   selectedLocation = value;
                   fetchRoomData(value!);
@@ -167,9 +186,11 @@ class _BookingState extends State<Booking> {
               SizedBox(height: 20.0),
               _buildDateField("Data da Solicitação", _requestDate, null, true),
               SizedBox(height: 20.0),
-              _buildDateField("Defina uma data de reserva", _selectedDate, () => _selectDateAndTime(context, 1), false),
+              _buildDateField("Defina uma data de reserva", _selectedDate,
+                  () => _selectDateAndTime(context, 1), false),
               SizedBox(height: 20.0),
-              _buildDateField("Data da Devolução", _returnDate, () => _selectDateAndTime(context, 3), false),
+              _buildDateField("Data da Devolução", _returnDate,
+                  () => _selectDateAndTime(context, 3), false),
               SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: saveReservation,
@@ -186,7 +207,8 @@ class _BookingState extends State<Booking> {
     );
   }
 
-  Widget _buildDateField(String label, DateTime date, VoidCallback? onTap, bool isReadOnly) {
+  Widget _buildDateField(
+      String label, DateTime date, VoidCallback? onTap, bool isReadOnly) {
     return Container(
       padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
       decoration: BoxDecoration(
@@ -199,7 +221,10 @@ class _BookingState extends State<Booking> {
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Text(
               label,
-              style: TextStyle(color: Colors.black, fontSize: 20.0, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.w500),
             ),
           ),
           SizedBox(height: 10.0),
@@ -209,12 +234,16 @@ class _BookingState extends State<Booking> {
               if (!isReadOnly)
                 GestureDetector(
                   onTap: onTap,
-                  child: Icon(Icons.calendar_month, color: Colors.white, size: 30.0),
+                  child: Icon(Icons.calendar_month,
+                      color: Colors.white, size: 30.0),
                 ),
               SizedBox(width: 20.0),
               Text(
                 "${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}",
-                style: TextStyle(color: isReadOnly ? Colors.black : Colors.white, fontSize: 30.0, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: isReadOnly ? Colors.black : Colors.white,
+                    fontSize: 30.0,
+                    fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -223,7 +252,8 @@ class _BookingState extends State<Booking> {
     );
   }
 
-  Widget _buildDropdown(String label, List<String> items, String? value, Function(String?) onChanged) {
+  Widget _buildDropdown(String label, List<String> items, String? value,
+      Function(String?) onChanged) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 10.0),
       decoration: BoxDecoration(
@@ -236,7 +266,10 @@ class _BookingState extends State<Booking> {
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Text(
               label,
-              style: TextStyle(color: Colors.black, fontSize: 20.0, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.w500),
             ),
           ),
           SizedBox(height: 10.0),

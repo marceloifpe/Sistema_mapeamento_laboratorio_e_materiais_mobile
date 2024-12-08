@@ -149,14 +149,14 @@ class _LogInState extends State<LogIn> {
                     ),
                     GestureDetector(
                       onTap: () {
-                          if (_formkey.currentState!.validate()) {
+                        if (_formkey.currentState!.validate()) {
                           setState(() {
                             mail = emailcontroller.text;
                             password = passwordcontroller.text;
                           });
                           userLogin();
                         }
-                        },
+                      },
                       child: Container(
                         padding: EdgeInsets.symmetric(vertical: 10.0),
                         width: MediaQuery.of(context).size.width,
@@ -192,7 +192,8 @@ class _LogInState extends State<LogIn> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=> SignUp()));
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => SignUp()));
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
