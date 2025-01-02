@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/booking.dart';
+import 'package:sistema_mapeamento_de_materiais/pages/bookingmaterial.dart';
+import 'package:sistema_mapeamento_de_materiais/pages/login.dart'; // Importe a página de Login
 import 'package:sistema_mapeamento_de_materiais/services/shared_pref.dart';
 
 class Home extends StatefulWidget {
@@ -12,30 +14,51 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   String? name;
 
-getthedatafromsharedpref()async{
-  name= await SharedpreferenceHelper().getUserName();
-  setState(() {
-    
-  });
-}
+  // Função para obter o nome do usuário do SharedPreferences
+  getthedatafromsharedpref() async {
+    name = await SharedpreferenceHelper().getUserName();
+    setState(() {});
+  }
 
-getontheload()async{
-  await getthedatafromsharedpref();
-  setState(() {
-    
-  });
-}
+  // Função chamada ao inicializar a tela
+  getontheload() async {
+    await getthedatafromsharedpref();
+    setState(() {});
+  }
 
-@override
+  @override
   void initState() {
     getontheload();
     super.initState();
+  }
+
+  // Função para realizar o logout e redirecionar para a tela de login
+  void logout() async {
+    // Limpa o SharedPreferences (se necessário)
+    await SharedpreferenceHelper().clearUserData();
+
+    // Redireciona para a página de login
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LogIn()), // Substitua "LoginPage" pelo nome da sua tela de login
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFFFFFFF),
+      appBar: AppBar(
+        automaticallyImplyLeading: false, // Remove o botão de "back"
+        title: Text("Sistema de Mapeamento de Materiais"),
+        actions: [
+          // Adiciona o botão de sair na AppBar
+          IconButton(
+            icon: Icon(Icons.exit_to_app),
+            onPressed: logout, // Chama a função de logout quando pressionado
+          ),
+        ],
+      ),
       body: Container(
         margin: EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0),
         child: Column(
@@ -54,8 +77,9 @@ getontheload()async{
                           fontSize: 24.0,
                           fontWeight: FontWeight.w500),
                     ),
+                    // Exibe o nome do usuário se disponível
                     Text(
-                      "Seja Bem-vindo Professor",
+                      name != null ? "Seja Bem-vindo $name" : "Seja Bem-vindo Professor",
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 24.0,
@@ -97,8 +121,13 @@ getontheload()async{
                 Flexible(
                   fit: FlexFit.tight,
                   child: GestureDetector(
-                    onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=> Booking(service: "Material")));
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => BookingMaterial(
+                                    service: "Material",
+                                  ))); // Navega para a tela de material
                     },
                     child: Container(
                         height: 150,
@@ -130,8 +159,13 @@ getontheload()async{
                 Flexible(
                   fit: FlexFit.tight,
                   child: GestureDetector(
-                    onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=> Booking(service: "Sala")));
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Booking(
+                                    service: "Sala",
+                                  ))); // Navega para a tela de sala
                     },
                     child: Container(
                         height: 150,
