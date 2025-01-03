@@ -79,7 +79,7 @@ class _HomeState extends State<Home> {
                     ),
                     // Exibe o nome do usuário se disponível
                     Text(
-                      name != null ? "Seja Bem-vindo $name" : "Seja Bem-vindo Professor",
+                      "Seja Bem-vindo Professor",
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 24.0,

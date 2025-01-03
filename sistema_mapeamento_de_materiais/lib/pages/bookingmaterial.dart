@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sistema_mapeamento_de_materiais/services/database.dart';
 import 'package:sistema_mapeamento_de_materiais/services/shared_pref.dart';
 
 class BookingMaterial extends StatefulWidget {
   final String service;
+
   BookingMaterial({required this.service});
 
   @override
@@ -13,9 +13,9 @@ class BookingMaterial extends StatefulWidget {
 
 class _BookingMaterialState extends State<BookingMaterial> {
   String? name, email, userId;
-  String? selectedMaterial;
-
-  List<String> locationList = [];
+  String? selectedMaterialName;
+  String? selectedMaterialId;
+  List<Map<String, String>> materialsList = [];
 
   DateTime _selectedDate = DateTime.now();
   DateTime _requestDate = DateTime.now();
@@ -25,7 +25,7 @@ class _BookingMaterialState extends State<BookingMaterial> {
   void initState() {
     super.initState();
     getUserData();
-    fetchLocationData();
+    fetchMaterialsData();
   }
 
   getUserData() async {
@@ -35,10 +35,12 @@ class _BookingMaterialState extends State<BookingMaterial> {
     setState(() {});
   }
 
-  Future<void> fetchLocationData() async {
+  Future<void> fetchMaterialsData() async {
     try {
-      QuerySnapshot locationSnapshot = await FirebaseFirestore.instance.collection("materiais").get();
-      locationList = locationSnapshot.docs.map((doc) => doc['nome_do_material'] as String).toSet().toList();
+      QuerySnapshot materialsSnapshot = await FirebaseFirestore.instance.collection("materiais").get();
+      materialsList = materialsSnapshot.docs
+          .map((doc) => {'id': doc.id, 'name': doc['nome_do_material'] as String})
+          .toList();
       setState(() {});
     } catch (e) {
       print("Erro ao buscar dados de materiais: $e");
@@ -46,11 +48,12 @@ class _BookingMaterialState extends State<BookingMaterial> {
   }
 
   Future<void> saveReservation() async {
-    if (selectedMaterial != null) {
+    if (selectedMaterialName != null && selectedMaterialId != null) {
       try {
         await FirebaseFirestore.instance.collection("reservas").add({
           'usuarios_id': userId,
-          'nome_do_material': selectedMaterial,
+          'material_id': selectedMaterialId,
+          'material_nome': selectedMaterialName,
           'data_solicitacao': _requestDate,
           'data_reserva': _selectedDate,
           'data_devolucao': _returnDate,
@@ -132,11 +135,17 @@ class _BookingMaterialState extends State<BookingMaterial> {
                 style: TextStyle(color: Colors.white, fontSize: 25.0, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20.0),
-              _buildDropdown("Escolha o Material", locationList, selectedMaterial, (value) {
-                setState(() {
-                  selectedMaterial = value;
-                });
-              }),
+              _buildDropdown(
+                "Escolha o Material",
+                materialsList.map((m) => m['name']!).toList(),
+                selectedMaterialName,
+                (value) {
+                  setState(() {
+                    selectedMaterialName = value;
+                    selectedMaterialId = materialsList.firstWhere((m) => m['name'] == value)['id'];
+                  });
+                },
+              ),
               SizedBox(height: 20.0),
               _buildDateField("Data da Solicitação", _requestDate, null, true),
               SizedBox(height: 20.0),
@@ -227,10 +236,10 @@ class _BookingMaterialState extends State<BookingMaterial> {
                 color: Colors.black,
               ),
               onChanged: onChanged,
-              items: items.map<DropdownMenuItem<String>>((String value) {
+              items: items.map<DropdownMenuItem<String>>((String item) {
                 return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
+                  value: item,
+                  child: Text(item),
                 );
               }).toList(),
             ),

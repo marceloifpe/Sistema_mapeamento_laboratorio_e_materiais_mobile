@@ -15,6 +15,7 @@ class _BookingState extends State<Booking> {
   String? name, email, userId;
   String? selectedRoom;
   String? selectedLocation;
+  String? selectedRoomId; // Adicionando o ID da sala
 
   List<String> roomList = [];
   List<String> locationList = [];
@@ -54,9 +55,14 @@ class _BookingState extends State<Booking> {
           .where('local', isEqualTo: location)
           .get();
       roomList = roomSnapshot.docs.map((doc) => doc['nome_da_sala'] as String).toList();
+
       if (roomList.isEmpty) {
         selectedRoom = null; // Reset selected room if no rooms found
+      } else {
+        // Atribuindo o ID da sala ao selecionar a sala
+        selectedRoomId = roomSnapshot.docs.first.id; // Armazena o documentId da sala
       }
+
       setState(() {});
     } catch (e) {
       print("Erro ao buscar dados de salas para o local: $e");
@@ -64,11 +70,11 @@ class _BookingState extends State<Booking> {
   }
 
   Future<void> saveReservation() async {
-    if (selectedRoom != null && selectedLocation != null) {
+    if (selectedRoom != null && selectedLocation != null && selectedRoomId != null) {
       try {
         await FirebaseFirestore.instance.collection("reservas").add({
           'usuarios_id': userId,
-          'salas_id': userId,
+          'salas_id': selectedRoomId, // Agora salvando o ID correto da sala
           'sala': selectedRoom,
           'local': selectedLocation,
           'data_solicitacao': _requestDate,
