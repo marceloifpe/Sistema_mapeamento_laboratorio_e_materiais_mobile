@@ -50,7 +50,7 @@ class _BookingMaterialState extends State<BookingMaterial> {
   Future<void> saveReservation() async {
     if (selectedMaterialName != null && selectedMaterialId != null) {
       try {
-        await FirebaseFirestore.instance.collection("reservas").add({
+        await FirebaseFirestore.instance.collection("reserva").add({
           'usuarios_id': userId,
           'material_id': selectedMaterialId,
           'material_nome': selectedMaterialName,
