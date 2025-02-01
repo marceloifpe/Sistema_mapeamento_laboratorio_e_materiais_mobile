@@ -2,21 +2,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sistema_mapeamento_de_materiais/Admin/booking_admin.dart';
+// import 'package:google_api_availability/google_api_availability.dart';
 
 class AdminLogin extends StatefulWidget {
   const AdminLogin({super.key});
 
   @override
-  State<AdminLogin> createState() => _MyWidgetState();
+  State<AdminLogin> createState() => _AdminLoginState();
 }
 
-class _MyWidgetState extends State<AdminLogin> {
-  TextEditingController nomedeusuariocontroller = TextEditingController();
-  TextEditingController passwordcontroller = TextEditingController();
-
-  FocusNode usernameFocusNode = FocusNode();
-  FocusNode passwordFocusNode = FocusNode();
-
+class _AdminLoginState extends State<AdminLogin> {
+  TextEditingController usernamecontroller = new TextEditingController();
+  TextEditingController userpasswordcontroller = new TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,10 +21,7 @@ class _MyWidgetState extends State<AdminLogin> {
         child: Stack(
           children: [
             Container(
-              padding: EdgeInsets.only(
-                top: 50.0,
-                left: 30.0,
-              ),
+              padding: EdgeInsets.only(top: 50.0, left: 30.0),
               height: MediaQuery.of(context).size.height / 2,
               width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
@@ -37,7 +31,7 @@ class _MyWidgetState extends State<AdminLogin> {
                 Color(0xFF311937)
               ])),
               child: Text(
-                "Painel do\nAdministradores!",
+                "Admin\nPainel",
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 32.0,
@@ -61,25 +55,19 @@ class _MyWidgetState extends State<AdminLogin> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Nome de Usuario",
+                      "Username",
                       style: TextStyle(
                           color: Color(0xFF091057),
                           fontSize: 23.0,
                           fontWeight: FontWeight.w500),
                     ),
                     TextFormField(
-                      controller: nomedeusuariocontroller,
-                      focusNode: usernameFocusNode,
+                      controller: usernamecontroller,
                       decoration: InputDecoration(
-                          hintText: "Nome de Usuario",
+                          hintText: "Digite Seu Nome",
                           prefixIcon: Icon(Icons.mail_outline)),
-                      onFieldSubmitted: (_) {
-                        FocusScope.of(context).requestFocus(passwordFocusNode);
-                      },
                     ),
-                    SizedBox(
-                      height: 40.0,
-                    ),
+                    SizedBox(height: 40.0),
                     Text(
                       "Senha",
                       style: TextStyle(
@@ -88,39 +76,16 @@ class _MyWidgetState extends State<AdminLogin> {
                           fontWeight: FontWeight.w500),
                     ),
                     TextFormField(
-                      controller: passwordcontroller,
-                      focusNode: passwordFocusNode,
+                      controller: userpasswordcontroller,
                       decoration: InputDecoration(
-                        hintText: "Senha",
-                        prefixIcon: Icon(Icons.password_outlined),
-                      ),
+                          hintText: "Digite Sua Senha",
+                          prefixIcon: Icon(Icons.password_outlined)),
                       obscureText: true,
-                      onFieldSubmitted: (_) {
-                        if (nomedeusuariocontroller.text.isEmpty ||
-                            passwordcontroller.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content:
-                                Text("Por favor, preencha ambos os campos."),
-                          ));
-                        } else {
-                          _loginAdmin(); // Agora chamando a função diretamente
-                        }
-                      },
                     ),
-                    SizedBox(
-                      height: 60.0,
-                    ),
+                    SizedBox(height: 60.0),
                     GestureDetector(
                       onTap: () {
-                        if (nomedeusuariocontroller.text.isEmpty ||
-                            passwordcontroller.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content:
-                                Text("Por favor, preencha ambos os campos."),
-                          ));
-                        } else {
-                          _loginAdmin(); // Chamando a função diretamente
-                        }
+                        loginAdmin();
                       },
                       child: Container(
                         padding: EdgeInsets.symmetric(vertical: 10.0),
@@ -134,14 +99,15 @@ class _MyWidgetState extends State<AdminLogin> {
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Center(
-                            child: Text(
-                          "LOGIN",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24.0,
-                            fontWeight: FontWeight.bold,
+                          child: Text(
+                            "Entrar",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24.0,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        )),
+                        ),
                       ),
                     ),
                   ],
@@ -154,74 +120,27 @@ class _MyWidgetState extends State<AdminLogin> {
     );
   }
 
-  @override
-  void dispose() {
-    usernameFocusNode.dispose();
-    passwordFocusNode.dispose();
-    super.dispose();
-  }
-
-  void _loginAdmin() async {
-    try {
-      if (nomedeusuariocontroller.text.trim().isEmpty ||
-          passwordcontroller.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-            "Por favor, preencha ambos os campos.",
-            style: TextStyle(fontSize: 20.0),
-          ),
-        ));
-        return;
-      }
-
-      var snapshot = await FirebaseFirestore.instance.collection("Admin").get();
-      bool idEncontrado = false;
-
-      for (var result in snapshot.docs) {
-        final adminData = result.data();
-        if (adminData['id'] == nomedeusuariocontroller.text.trim()) {
-          idEncontrado = true;
-
-          if (adminData['Senha'] == passwordcontroller.text.trim()) {
-            // Log bem-sucedido
-            print("Login bem-sucedido! Redirecionando...");
-
-            // Garantindo a navegação no contexto correto
-            Future.delayed(Duration(seconds: 1), () {
-              // Usando `Navigator.of(context)` para a navegação
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => BookingAdmin()),
-              );
-            });
-
-            return;
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  loginAdmin() {
+    FirebaseFirestore.instance.collection("Admin").get().then((snapshot) {
+      snapshot.docs.forEach((result) {
+        if (result.data()['id'] != usernamecontroller.text.trim()) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(
-                "Senha incorreta.",
-                style: TextStyle(fontSize: 20.0),
-              ),
-            ));
-            return;
-          }
-        }
-      }
-
-      if (!idEncontrado) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-            "Seu ID não está correto!",
+            "Sua identificação não está Correta !",
             style: TextStyle(fontSize: 20.0),
-          ),
-        ));
-      }
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          "Erro ao realizar o login. Tente novamente.",
-          style: TextStyle(fontSize: 20.0),
-        ),
-      ));
-    }
+          )));
+        } else if (result.data()['password'] !=
+            userpasswordcontroller.text.trim()) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+            "Sua Senha não está Correta !",
+            style: TextStyle(fontSize: 20.0),
+          )));
+        } else {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => BookingAdmin()));
+        }
+      });
+    });
   }
 }

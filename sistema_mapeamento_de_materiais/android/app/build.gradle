@@ -63,10 +63,10 @@ flutter {
 }
 
 dependencies {
-    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
+    implementation(platform("com.google.firebase:firebase-bom:30.0.3"))
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation("com.google.firebase:firebase-analytics")
-    
-    
+
+
     // Adicione outras dependências conforme necessário
 }

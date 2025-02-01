@@ -2,6 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sistema_mapeamento_de_materiais/Admin/gerenciar_salas.dart';
+import 'package:sistema_mapeamento_de_materiais/services/database.dart';
+import 'package:sistema_mapeamento_de_materiais/pages/login.dart';
+import 'package:sistema_mapeamento_de_materiais/Admin/gerenciar_salas.dart'; // Importa a tela de Gerenciar Salas
+import 'package:sistema_mapeamento_de_materiais/Admin/gerenciar_materiais.dart';
 
 class BookingAdmin extends StatefulWidget {
   @override
@@ -10,24 +15,6 @@ class BookingAdmin extends StatefulWidget {
 
 class _BookingAdminState extends State<BookingAdmin> {
   String? adminName = "Administrador"; // Nome do administrador
-
-  @override
-  void initState() {
-    super.initState();
-    // Instalar o provedor de segurança no Android (opcional)
-    if (Platform.isAndroid) {
-      _installSecurityProvider();
-    }
-  }
-
-  void _installSecurityProvider() {
-    try {
-      // Simula a instalação do ProviderInstaller (substituir por nativo se necessário)
-      print("Provedor de segurança instalado com sucesso.");
-    } catch (e) {
-      print("Erro ao instalar provedor de segurança: $e");
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,15 +51,15 @@ class _BookingAdminState extends State<BookingAdmin> {
                     ),
                   ],
                 ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    "assets/images/admin.png", // Caminho corrigido
-                    height: 60,
-                    width: 60,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+                // ClipRRect(
+                //   borderRadius: BorderRadius.circular(10),
+                //   child: Image.asset(
+                //     "assets/images/usuario.png",
+                //     height: 60,
+                //     width: 60,
+                //     fit: BoxFit.cover,
+                //   ),
+                // ),
               ],
             ),
             SizedBox(height: 20.0),
@@ -102,7 +89,11 @@ class _BookingAdminState extends State<BookingAdmin> {
               title: "Gerenciar Materiais",
               icon: Icons.inventory,
               onTap: () {
-                // Implementar funcionalidade
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => GerenciarMateriaisPage()),
+                );
               },
             ),
             SizedBox(width: 20.0),
@@ -110,7 +101,10 @@ class _BookingAdminState extends State<BookingAdmin> {
               title: "Gerenciar Salas",
               icon: Icons.meeting_room,
               onTap: () {
-                // Implementar funcionalidade
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => GerenciarSalasPage()),
+                );
               },
             ),
           ],
