@@ -1,12 +1,16 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sistema_mapeamento_de_materiais/Admin/admin_login.dart';
 import 'package:sistema_mapeamento_de_materiais/Admin/gerenciar_salas.dart';
 import 'package:sistema_mapeamento_de_materiais/services/database.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/login.dart';
 import 'package:sistema_mapeamento_de_materiais/Admin/gerenciar_salas.dart'; // Importa a tela de Gerenciar Salas
 import 'package:sistema_mapeamento_de_materiais/Admin/gerenciar_materiais.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sistema_mapeamento_de_materiais/services/shared_pref.dart'; // Certifique-se de importar a função de SharedPreferences
 
 class BookingAdmin extends StatefulWidget {
   @override
@@ -16,16 +20,42 @@ class BookingAdmin extends StatefulWidget {
 class _BookingAdminState extends State<BookingAdmin> {
   String? adminName = "Administrador"; // Nome do administrador
 
+  // Função para realizar o logout e redirecionar para a tela de login
+  void logout() async {
+    // Limpa o SharedPreferences (se necessário)
+    await SharedpreferenceHelper().clearUserData();
+
+    // Realiza o logout no Firebase
+    await FirebaseAuth.instance.signOut();
+
+    // Redireciona para a tela de login
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => AdminLogin()), // Substitua "AdminLogin" pela sua tela de login
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFFFFFFF),
       appBar: AppBar(
-        title: Text('Booking Admin'),
+        title: Text(
+          'Sistema de Mapeamento de Materiais',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Color(0xff1F509A),
+        automaticallyImplyLeading: false, // Remove o botão de voltar
+        actions: [
+          // Adiciona o botão de logout
+          IconButton(
+            icon: Icon(Icons.exit_to_app, color: Colors.white),
+            onPressed: logout, // Chama a função de logout quando pressionado
+          ),
+        ],
       ),
       body: Container(
-        margin: EdgeInsets.only(top: 20.0, left: 20.0, right: 20.0),
+        margin: EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -42,8 +72,9 @@ class _BookingAdminState extends State<BookingAdmin> {
                           fontSize: 24.0,
                           fontWeight: FontWeight.w500),
                     ),
+                    // Exibe o nome do administrador
                     Text(
-                      adminName ?? "Administrador",
+                      "Seja Bem-Vindo Administrador",
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 24.0,
@@ -51,22 +82,14 @@ class _BookingAdminState extends State<BookingAdmin> {
                     ),
                   ],
                 ),
-                // ClipRRect(
-                //   borderRadius: BorderRadius.circular(10),
-                //   child: Image.asset(
-                //     "assets/images/usuario.png",
-                //     height: 60,
-                //     width: 60,
-                //     fit: BoxFit.cover,
-                //   ),
-                // ),
+                // Opção para adicionar a imagem do usuário, se necessário
               ],
             ),
             SizedBox(height: 20.0),
             Divider(color: Colors.black38),
             SizedBox(height: 20.0),
             Text(
-              "Painel Administrativo",
+              "Serviços",
               style: TextStyle(
                   color: Colors.black,
                   fontSize: 24.0,
@@ -89,10 +112,10 @@ class _BookingAdminState extends State<BookingAdmin> {
               title: "Gerenciar Materiais",
               icon: Icons.inventory,
               onTap: () {
+                // Navega para a tela de Gerenciar Materiais
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => GerenciarMateriaisPage()),
+                  MaterialPageRoute(builder: (context) => GerenciarMateriaisPage()),
                 );
               },
             ),
@@ -101,6 +124,7 @@ class _BookingAdminState extends State<BookingAdmin> {
               title: "Gerenciar Salas",
               icon: Icons.meeting_room,
               onTap: () {
+                // Navega para a tela de Gerenciar Salas
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => GerenciarSalasPage()),
@@ -116,7 +140,7 @@ class _BookingAdminState extends State<BookingAdmin> {
               title: "Relatórios",
               icon: Icons.bar_chart,
               onTap: () {
-                // Implementar funcionalidade
+                // Implementar funcionalidade de relatórios
               },
             ),
             SizedBox(width: 20.0),
@@ -124,7 +148,7 @@ class _BookingAdminState extends State<BookingAdmin> {
               title: "Configurações",
               icon: Icons.settings,
               onTap: () {
-                // Implementar funcionalidade
+                // Implementar funcionalidade de configurações
               },
             ),
           ],
