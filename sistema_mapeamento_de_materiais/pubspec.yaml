@@ -16,6 +16,7 @@ dependencies:
   firebase_analytics: ^11.3.3
   random_string: ^2.3.1
   shared_preferences: ^2.3.2
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

@@ -7,6 +7,7 @@ import 'package:sistema_mapeamento_de_materiais/pages/login.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/onboarding.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/signup.dart';
 import 'package:sistema_mapeamento_de_materiais/Admin/booking_admin.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

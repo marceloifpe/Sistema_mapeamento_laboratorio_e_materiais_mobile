@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sistema_mapeamento_de_materiais/services/database.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/login.dart';
+import 'package:sistema_mapeamento_de_materiais/Admin/TelaQrCode.dart';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,11 +19,12 @@ class GerenciarMateriaisPage extends StatefulWidget {
 class _GerenciarMateriaisPageState extends State<GerenciarMateriaisPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void _adicionarOuEditarSala({
+  void _adicionarOuEditarMaterial({
     String? id,
     String? nome,
   }) {
     String novoNome = nome ?? "";
+    TextEditingController controller = TextEditingController(text: nome);
 
     showDialog(
       context: context,
@@ -33,8 +36,7 @@ class _GerenciarMateriaisPageState extends State<GerenciarMateriaisPage> {
             children: [
               TextField(
                 decoration: InputDecoration(labelText: "Nome do Material"),
-                onChanged: (value) => novoNome = value,
-                controller: TextEditingController(text: nome),
+                controller: controller,
               ),
             ],
           ),
@@ -45,16 +47,19 @@ class _GerenciarMateriaisPageState extends State<GerenciarMateriaisPage> {
             ),
             TextButton(
               onPressed: () async {
+                novoNome = controller.text;
                 if (novoNome.isNotEmpty) {
                   if (id == null) {
-                    // Adiciona uma nova sala
-                    await _firestore.collection("materiais").add({
+                    DocumentReference docRef =
+                        await _firestore.collection("materiais").add({
                       "nome_do_material": novoNome,
-
-                      "reservado": false, // Sempre começa como falso
+                      "reservado": false,
+                      "qr_code": "",
+                    });
+                    await docRef.update({
+                      "qr_code": docRef.id,
                     });
                   } else {
-                    // Atualiza uma sala existente
                     await _firestore.collection("materiais").doc(id).update({
                       "nome_do_material": novoNome,
                     });
@@ -70,7 +75,7 @@ class _GerenciarMateriaisPageState extends State<GerenciarMateriaisPage> {
     );
   }
 
-  void _removerSala(String id) {
+  void _removerMaterial(String id) {
     _firestore.collection("materiais").doc(id).delete();
   }
 
@@ -88,29 +93,52 @@ class _GerenciarMateriaisPageState extends State<GerenciarMateriaisPage> {
             return Center(child: CircularProgressIndicator());
           }
 
-          var salas = snapshot.data!.docs;
+          var materiais = snapshot.data!.docs;
 
           return ListView.builder(
-            itemCount: salas.length,
+            itemCount: materiais.length,
             itemBuilder: (context, index) {
-              var sala = salas[index];
-              var salaData = sala.data() as Map<String, dynamic>;
+              var material = materiais[index];
+              var materialData = material.data() as Map<String, dynamic>;
+              String qrCodeData = materialData["qr_code"] ?? "";
 
               return ListTile(
-                title: Text(salaData["nome_do_material"]),
+                title: Text(materialData["nome_do_material"]),
+                subtitle: qrCodeData.isNotEmpty
+                    ? GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  TelaQrCode(qrData: qrCodeData),
+                            ),
+                          );
+                        },
+                        child: SizedBox(
+                          height: 60,
+                          width: 60,
+                          child: QrImageView(
+                            data: qrCodeData,
+                            version: QrVersions.auto,
+                            size: 60.0,
+                          ),
+                        ),
+                      )
+                    : null,
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () => _adicionarOuEditarSala(
-                        id: sala.id,
-                        nome: salaData["nome_do_material"],
+                      onPressed: () => _adicionarOuEditarMaterial(
+                        id: material.id,
+                        nome: materialData["nome_do_material"],
                       ),
                     ),
                     IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _removerSala(sala.id),
+                      onPressed: () => _removerMaterial(material.id),
                     ),
                   ],
                 ),
@@ -122,7 +150,7 @@ class _GerenciarMateriaisPageState extends State<GerenciarMateriaisPage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xff1F509A),
         child: Icon(Icons.add),
-        onPressed: () => _adicionarOuEditarSala(),
+        onPressed: () => _adicionarOuEditarMaterial(),
       ),
     );
   }
