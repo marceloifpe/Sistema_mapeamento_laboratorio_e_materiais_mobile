@@ -114,7 +114,7 @@ class _HomeState extends State<Home> {
                 buildServiceCard("Sala", "images/sala.png", Booking(service: "Sala")),
                 buildServiceCard("Ver Reserva Material", "images/projetor.png", null),
                 buildServiceCard("Ver Reserva Sala", "images/sala.png", null),
-                buildServiceCard("Escanear QrCode", "images/qr.jpeg", ReservaMaterial(service:"Material")),
+                buildServiceCard("Escanear QrCode", "images/qr.png", ReservaMaterial(service:"Material")),
               ],
             ),
           ],
