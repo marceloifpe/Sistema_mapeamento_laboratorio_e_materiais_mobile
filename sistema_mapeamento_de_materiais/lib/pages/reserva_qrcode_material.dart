@@ -82,22 +82,22 @@ class _ReservaMaterialState extends State<ReservaMaterial> {
       MaterialPageRoute(
         builder: (context) => QRScannerScreen(
           onScan: (result) {
-            if (result != null && result.isNotEmpty) {
+            if (result?.isNotEmpty ?? false) {
               setState(() {
                 selectedMaterialId = result;
               });
-              fetchMaterialById(result); // Busca o material após escanear
+              fetchMaterialById(result!); // Usamos '!' para garantir que result não é null
             }
           },
         ),
       ),
     );
 
-    if (scannedMaterialId != null && scannedMaterialId.isNotEmpty) {
+    if (scannedMaterialId?.isNotEmpty ?? false) {
       setState(() {
         selectedMaterialId = scannedMaterialId;
       });
-      fetchMaterialById(scannedMaterialId); // Busca o material após escanear
+      fetchMaterialById(scannedMaterialId!); // Usamos '!' para garantir que scannedMaterialId não é null
     }
   }
 
@@ -220,7 +220,7 @@ class _ReservaMaterialState extends State<ReservaMaterial> {
               SizedBox(height: 20.0),
               _buildDateField("Data da Solicitação", _requestDate, null, true),
               SizedBox(height: 20.0),
-              _buildDateField("Defina uma data de Reserva", _reservationDate, () => _selectDateAndTime(context, 3), false), // Permite alterar a data da reserva
+              _buildDateField("Defina uma data de reserva", _reservationDate, () => _selectDateAndTime(context, 3), false),
               SizedBox(height: 20.0),
               _buildDateField("Data da Devolução", _returnDate, () => _selectDateAndTime(context, 2), false),
               SizedBox(height: 20.0),
@@ -263,12 +263,12 @@ class _ReservaMaterialState extends State<ReservaMaterial> {
               if (!isReadOnly)
                 GestureDetector(
                   onTap: onTap,
-                  child: Icon(Icons.calendar_today, color: Colors.white),
+                  child: Icon(Icons.calendar_month, color: Colors.white, size: 30.0),
                 ),
               SizedBox(width: 20.0),
               Text(
-                "${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}",
-                style: TextStyle(color: Colors.black, fontSize: 20.0),
+                "${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}",
+                style: TextStyle(color: isReadOnly ? Colors.black : Colors.white, fontSize: 30.0, fontWeight: FontWeight.bold),
               ),
             ],
           ),
