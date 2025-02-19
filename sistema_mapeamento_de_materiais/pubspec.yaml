@@ -37,6 +37,7 @@ dependencies:
   shared_preferences: ^2.3.3
   qr_flutter: ^4.1.0
   mobile_scanner: ^3.5.5
+  intl: ^0.17.0
 
 
   # The following adds the Cupertino Icons font to your application.
