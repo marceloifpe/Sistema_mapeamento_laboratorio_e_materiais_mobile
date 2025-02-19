@@ -3,6 +3,7 @@ import 'package:sistema_mapeamento_de_materiais/pages/booking.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/bookingmaterial.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/login.dart'; // Importe a página de Login
 import 'package:sistema_mapeamento_de_materiais/pages/reserva_qrcode_material.dart';
+import 'package:sistema_mapeamento_de_materiais/pages/ver_reserva_material.dart';
 import 'package:sistema_mapeamento_de_materiais/services/shared_pref.dart';
 
 class Home extends StatefulWidget {
@@ -112,7 +113,7 @@ class _HomeState extends State<Home> {
               children: [
                 buildServiceCard("Material", "images/projetor.png", BookingMaterial(service: "Material")),
                 buildServiceCard("Sala", "images/sala.png", Booking(service: "Sala")),
-                buildServiceCard("Ver Reserva Material", "images/projetor.png", null),
+                buildServiceCard("Ver Reserva Material", "images/projetor.png", VerReservaMaterial(service:"Material")),
                 buildServiceCard("Ver Reserva Sala", "images/sala.png", null),
                 buildServiceCard("Escanear QrCode", "images/qr.png", ReservaMaterial(service:"Material")),
               ],
