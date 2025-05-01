@@ -4,6 +4,7 @@ import 'package:sistema_mapeamento_de_materiais/pages/bookingmaterial.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/login.dart'; // Importe a página de Login
 import 'package:sistema_mapeamento_de_materiais/pages/reserva_qrcode_material.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/ver_reserva_material.dart';
+import 'package:sistema_mapeamento_de_materiais/pages/ver_reserva_sala.dart';
 import 'package:sistema_mapeamento_de_materiais/services/shared_pref.dart';
 
 class Home extends StatefulWidget {
@@ -55,7 +56,8 @@ class _HomeState extends State<Home> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0, bottom: 20.0),
+        padding:
+            EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -111,11 +113,16 @@ class _HomeState extends State<Home> {
               mainAxisSpacing: 20.0,
               childAspectRatio: 1.0,
               children: [
-                buildServiceCard("Material", "images/projetor.png", BookingMaterial(service: "Material")),
-                buildServiceCard("Sala", "images/sala.png", Booking(service: "Sala")),
-                buildServiceCard("Ver Reserva Material", "images/projetor.png", VerReservaMaterial(service:"Material")),
-                buildServiceCard("Ver Reserva Sala", "images/sala.png", null),
-                buildServiceCard("Escanear QrCode", "images/qr.png", ReservaMaterial(service:"Material")),
+                buildServiceCard("Material", "images/projetor.png",
+                    BookingMaterial(service: "Material")),
+                buildServiceCard(
+                    "Sala", "images/sala.png", Booking(service: "Sala")),
+                buildServiceCard("Ver Reserva Material", "images/projetor.png",
+                    VerReservaMaterial(service: "Material")),
+                buildServiceCard("Ver Reserva Sala", "images/sala.png",
+                    VerReservaSala(service: "Sala")),
+                buildServiceCard("Escanear QrCode", "images/qr.png",
+                    ReservaMaterial(service: "Material")),
               ],
             ),
           ],
@@ -128,7 +135,8 @@ class _HomeState extends State<Home> {
     return GestureDetector(
       onTap: () {
         if (destination != null) {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => destination));
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => destination));
         }
       },
       child: Container(
