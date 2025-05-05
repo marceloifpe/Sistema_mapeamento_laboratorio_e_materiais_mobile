@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sistema_mapeamento_de_materiais/Admin/admin_login.dart';
 import 'package:sistema_mapeamento_de_materiais/Admin/gerenciar_salas.dart';
+import 'package:sistema_mapeamento_de_materiais/Admin/ver_relatorio.dart';
 import 'package:sistema_mapeamento_de_materiais/services/database.dart';
 import 'package:sistema_mapeamento_de_materiais/pages/login.dart';
 import 'package:sistema_mapeamento_de_materiais/Admin/gerenciar_salas.dart'; // Importa a tela de Gerenciar Salas
@@ -31,7 +32,9 @@ class _BookingAdminState extends State<BookingAdmin> {
     // Redireciona para a tela de login
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => AdminLogin()), // Substitua "AdminLogin" pela sua tela de login
+      MaterialPageRoute(
+          builder: (context) =>
+              AdminLogin()), // Substitua "AdminLogin" pela sua tela de login
     );
   }
 
@@ -115,7 +118,8 @@ class _BookingAdminState extends State<BookingAdmin> {
                 // Navega para a tela de Gerenciar Materiais
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => GerenciarMateriaisPage()),
+                  MaterialPageRoute(
+                      builder: (context) => GerenciarMateriaisPage()),
                 );
               },
             ),
@@ -140,7 +144,10 @@ class _BookingAdminState extends State<BookingAdmin> {
               title: "Relatórios",
               icon: Icons.bar_chart,
               onTap: () {
-                // Implementar funcionalidade de relatórios
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => VerRelatorioPage()),
+                );
               },
             ),
             SizedBox(width: 20.0),
