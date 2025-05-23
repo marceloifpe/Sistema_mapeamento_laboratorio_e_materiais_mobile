@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:sistema_mapeamento_de_materiais/Admin/admin_login.dart';
-import 'package:sistema_mapeamento_de_materiais/pages/home.dart';
-import 'package:sistema_mapeamento_de_materiais/pages/onboarding.dart';
-import 'package:sistema_mapeamento_de_materiais/pages/signup.dart';
+import 'package:sistema_mapeamento_de_materiais/Admin/admin_login.dart'; // Seu import
+import 'package:sistema_mapeamento_de_materiais/pages/home.dart'; // Seu import
+// import 'package:sistema_mapeamento_de_materiais/pages/onboarding.dart'; // Removido se não usado aqui
+import 'package:sistema_mapeamento_de_materiais/pages/signup.dart'; // Seu import
+// Import para a tela de "Esqueci minha senha", se você tiver uma.
+// import 'package:sistema_mapeamento_de_materiais/pages/forgot_password.dart';
 
 class LogIn extends StatefulWidget {
   const LogIn({super.key});
@@ -13,186 +15,521 @@ class LogIn extends StatefulWidget {
 }
 
 class _LogInState extends State<LogIn> {
-  String? mail, password;
-  TextEditingController emailcontroller = TextEditingController();
-  TextEditingController passwordcontroller = TextEditingController();
+  String? mail, password; // Mantido, mas idealmente ler direto dos controllers
+  final TextEditingController emailcontroller = TextEditingController();
+  final TextEditingController passwordcontroller = TextEditingController();
 
   final _formkey = GlobalKey<FormState>();
 
-  userLogin() async {
+  bool _isLoading = false;
+  bool _obscurePassword = true;
+
+  // Cores consistentes com SignUp
+  static const Color kPrimaryColor = Color(0xFF091057);
+  static const Color kAccentColor = Color(0xff1F509A);
+  static const Color kGradientEndColor = Color(0xFF311937);
+
+  @override
+  void dispose() {
+    emailcontroller.dispose();
+    passwordcontroller.dispose();
+    super.dispose();
+  }
+
+  Future<void> userLogin() async {
+    // Atribuir valores dos controllers antes de usar
+    // É mais seguro ler diretamente dos controllers no momento do uso
+    // ou usar onChanged como no SignUp.dart para manter mail e password atualizados.
+    // Para este exemplo, vamos ler diretamente.
+    final currentEmail = emailcontroller.text.trim();
+    final currentPassword = passwordcontroller.text.trim();
+
+    if (currentEmail.isEmpty || currentPassword.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          backgroundColor: Colors.orangeAccent,
+          content: Text(
+            "Por favor, preencha e-mail e senha.",
+            style: TextStyle(fontSize: 18.0, color: Colors.white),
+          ),
+        ));
+      }
+      return; // Não prosseguir se os campos estiverem vazios
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: mail!, password: password!);
-      Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: currentEmail, password: currentPassword);
+
+      if (!mounted) return;
+      // Opcional: Mostrar SnackBar de sucesso
+      // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      //   backgroundColor: Colors.green,
+      //   content: Text(
+      //     "Login realizado com sucesso!",
+      //     style: TextStyle(fontSize: 18.0, color: Colors.white),
+      //   ),
+      // ));
+      Navigator.pushReplacement(
+          // Usar pushReplacement para não voltar à tela de login
+          context,
+          MaterialPageRoute(builder: (context) => const Home()));
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      String message;
+      if (e.code == 'user-not-found') {
+        message = "Nenhum usuário encontrado para este e-mail.";
+      } else if (e.code == 'wrong-password') {
+        message = "Senha incorreta.";
+      } else if (e.code == 'invalid-email') {
+        message = "O formato do e-mail é inválido.";
+      } else if (e.code == 'too-many-requests') {
+        message = "Muitas tentativas de login. Tente novamente mais tarde.";
+      } else {
+        message = "Erro ao realizar login. Verifique suas credenciais.";
+        print("Firebase Auth Exception (Login): ${e.message} (${e.code})");
+      }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Colors.redAccent,
         content: Text(
-          e.code == 'user-not-found'
-              ? "Nenhum usuário encontrado para esse E-mail"
-              : e.code == 'wrong-password'
-                  ? "Senha incorreta fornecida pelo usuário"
-                  : "Erro ao realizar login",
-          style: TextStyle(fontSize: 18.0, color: Colors.black),
+          message,
+          style: const TextStyle(fontSize: 18.0, color: Colors.white),
         ),
       ));
+    } catch (e) {
+      if (!mounted) return;
+      print("Generic Exception (Login): $e");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          backgroundColor: Colors.redAccent,
+          content: Text(
+            "Ocorreu um erro desconhecido. Tente novamente.",
+            style: TextStyle(fontSize: 18.0, color: Colors.white),
+          )));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      body: Container(
-        child: Stack(
-          children: [
-            Container(
-              padding: EdgeInsets.only(top: 50.0, left: 30.0),
-              height: MediaQuery.of(context).size.height / 2,
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [
-                Color(0xFF091057),
-                Color(0xff1F509A),
-                Color(0xFF311937)
-              ])),
-              child: Text(
-                "Olá\nLogin!",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32.0,
-                    fontWeight: FontWeight.bold),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: screenHeight - MediaQuery.of(context).padding.top,
+            ),
+            child: Column(
+              children: <Widget>[
+                _buildHeader(screenHeight, screenWidth),
+                _buildFormContainer(screenHeight, screenWidth),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(double screenHeight, double screenWidth) {
+    double headerHeight = screenHeight / 2.8;
+    double logoImageHeight = screenHeight * 0.10;
+    double logoBackgroundDiameter = logoImageHeight * 1.4;
+
+    return Container(
+      padding: EdgeInsets.only(
+        top: screenHeight * 0.04,
+        left: screenWidth * 0.07,
+        right: screenWidth * 0.07,
+        bottom: screenHeight * 0.03,
+      ),
+      height: headerHeight,
+      width: screenWidth,
+      decoration: const BoxDecoration(
+          gradient: LinearGradient(
+              colors: [kPrimaryColor, kAccentColor, kGradientEndColor],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight)),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: logoBackgroundDiameter,
+            height: logoBackgroundDiameter,
+            padding: EdgeInsets.all(logoImageHeight * 0.1),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 5.0,
+                  offset: const Offset(0, 2),
+                )
+              ],
+            ),
+            child: Center(
+              child: Image.asset(
+                'images/ufrpe.png', // Certifique-se que este caminho está correto
+                height: logoImageHeight,
+                fit: BoxFit.contain,
               ),
             ),
-            Container(
-              padding: EdgeInsets.all(30.0),
-              margin: EdgeInsets.only(
-                  top: MediaQuery.of(context).size.height / 4),
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(40),
-                      topRight: Radius.circular(40))),
-              child: Form(
-                key: _formkey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("E-mail",
-                        style: TextStyle(
-                            fontSize: 23.0, fontWeight: FontWeight.w500)),
-                    TextFormField(
-                      controller: emailcontroller,
-                      decoration: InputDecoration(
-                          hintText: "E-mail",
-                          prefixIcon: Icon(Icons.mail_outline)),
-                    ),
-                    SizedBox(height: 40.0),
-                    Text("Senha",
-                        style: TextStyle(
-                            fontSize: 23.0, fontWeight: FontWeight.w500)),
-                    TextFormField(
-                      controller: passwordcontroller,
-                      decoration: InputDecoration(
-                          hintText: "Senha",
-                          prefixIcon: Icon(Icons.password_outlined)),
-                      obscureText: true,
-                    ),
-                    SizedBox(height: 30.0),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text("Esqueceu a Senha?",
-                              style: TextStyle(
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.w500)),
-                        ]),
-                    SizedBox(height: 60.0),
-                    GestureDetector(
-                      onTap: () {
-                        if (_formkey.currentState!.validate()) {
-                          setState(() {
-                            mail = emailcontroller.text;
-                            password = passwordcontroller.text;
-                          });
-                          userLogin();
-                        }
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 10.0),
-                        width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                            gradient: LinearGradient(colors: [
-                              Color(0xFF091057),
-                              Color(0xff1F509A),
-                              Color(0xFF311937)
-                            ]),
-                            borderRadius: BorderRadius.circular(30)),
-                        child: Center(
-                            child: Text("Login",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24.0,
-                                    fontWeight: FontWeight.bold))),
-                      ),
-                    ),
-                    Spacer(),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text("Você não tem uma Conta?",
-                              style: TextStyle(
-                                  fontSize: 17.0,
-                                  fontWeight: FontWeight.w500)),
-                        ]),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => SignUp()));
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text("Inscreva-se",
-                              style: TextStyle(
-                                  fontSize: 22.0,
-                                  fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 20.0),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text("Caso seja ADM",
-                              style: TextStyle(
-                                  fontSize: 17.0,
-                                  fontWeight: FontWeight.w500)),
-                        ]),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => AdminLogin()));
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text("Login ADM",
-                              style: TextStyle(
-                                  fontSize: 22.0,
-                                  fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          ),
+          SizedBox(height: screenHeight * 0.025),
+          const Text(
+            "Olá\nLogin!",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 22.0,
+                fontWeight: FontWeight.bold,
+                height: 1.2,
+                shadows: [
+                  Shadow(
+                      blurRadius: 6.0,
+                      color: Colors.black26,
+                      offset: Offset(2, 2))
+                ]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormContainer(double screenHeight, double screenWidth) {
+    return Transform.translate(
+      offset: Offset(0, -screenHeight * 0.06),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.07, vertical: screenHeight * 0.04),
+        width: screenWidth,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(40),
+            topRight: Radius.circular(40),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              spreadRadius: 0,
+              blurRadius: 20,
+              offset: const Offset(0, -5),
             ),
           ],
         ),
+        child: Form(
+          key: _formkey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              SizedBox(height: screenHeight * 0.02),
+              _buildTextFormField(
+                controller: emailcontroller,
+                labelText: "E-mail Institucional",
+                hintText: "seuemail@ufrpe.br",
+                icon: Icons.mail_outline,
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, informe o E-mail';
+                  }
+                  if (!value.endsWith('@ufrpe.br') &&
+                      !value.endsWith('@gmail.com')) {
+                    // Permite @ufrpe.br ou @gmail.com para admin
+                    // Para admin, você pode ter uma validação diferente ou nenhuma restrição de domínio.
+                    // Adapte esta lógica se necessário para diferenciar admin de usuário comum.
+                    // Se o admin_login é separado, esta validação pode ser mais restrita.
+                    // Para este exemplo genérico, vamos manter a validação mais flexível aqui.
+                    // Se for estritamente @ufrpe.br para usuários normais:
+                    // if (!value.endsWith('@ufrpe.br')) {
+                    //   return 'E-mail deve ser do domínio @ufrpe.br';
+                    // }
+                  }
+                  final emailRegex = RegExp(
+                      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+                  if (!emailRegex.hasMatch(value)) {
+                    return 'Formato de e-mail inválido';
+                  }
+                  return null;
+                },
+                // onChanged: (value) => mail = value, // Opcional se ler direto do controller
+              ),
+              SizedBox(height: screenHeight * 0.025),
+              _buildTextFormField(
+                controller: passwordcontroller,
+                labelText: "Senha",
+                hintText: "Digite sua senha",
+                icon: Icons.lock_outline,
+                obscureText: _obscurePassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: kAccentColor.withOpacity(0.7),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, informe a Senha';
+                  }
+                  return null;
+                },
+                // onChanged: (value) => password = value, // Opcional
+              ),
+              SizedBox(height: screenHeight * 0.015),
+              _buildForgotPasswordLink(context), // Link de "Esqueceu a senha?"
+              SizedBox(height: screenHeight * 0.03),
+              _buildSubmitButton(),
+              SizedBox(height: screenHeight * 0.03),
+              _buildSignUpLink(context),
+              SizedBox(height: screenHeight * 0.015),
+              _buildAdminLoginLink(context),
+              SizedBox(height: screenHeight * 0.02),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String labelText,
+    required String hintText,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
+    bool obscureText = false,
+    Widget? suffixIcon,
+    // ValueChanged<String>? onChanged, // Adicionado para consistência com SignUp se necessário
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      // onChanged: onChanged,
+      style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        labelText: labelText,
+        labelStyle:
+            TextStyle(color: kAccentColor.withOpacity(0.8), fontSize: 16),
+        hintText: hintText,
+        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+        prefixIcon: Icon(icon, color: kAccentColor.withOpacity(0.7), size: 22),
+        suffixIcon: suffixIcon,
+        filled: true,
+        fillColor: kAccentColor.withOpacity(0.03),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: const BorderSide(color: kAccentColor, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _buildForgotPasswordLink(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: TextButton(
+        onPressed: _isLoading
+            ? null
+            : () {
+                // TODO: Implementar navegação para tela de "Esqueci minha senha"
+                // Exemplo: Navigator.push(context, MaterialPageRoute(builder: (context) => ForgotPasswordScreen()));
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                          "Funcionalidade 'Esqueci a Senha' não implementada."),
+                      backgroundColor: Colors.amber,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          // foregroundColor: kAccentColor.withOpacity(0.8),
+        ),
+        child: Text(
+          "Esqueceu a Senha?",
+          style: TextStyle(
+            color: kAccentColor.withOpacity(0.9),
+            fontSize: 15.0,
+            // fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.transparent,
+        padding: EdgeInsets.zero,
+        elevation: _isLoading ? 0 : 8,
+        shadowColor: kPrimaryColor.withOpacity(0.4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+      ).copyWith(
+        backgroundColor: MaterialStateProperty.all(Colors.transparent),
+      ),
+      onPressed: _isLoading
+          ? null
+          : () {
+              if (_formkey.currentState!.validate()) {
+                // As variáveis mail e password são atualizadas pelos controllers ou onChanged.
+                // Se não estiver usando onChanged, atribua aqui:
+                // setState(() {
+                //   mail = emailcontroller.text;
+                //   password = passwordcontroller.text;
+                // });
+                userLogin();
+              }
+            },
+      child: Ink(
+        decoration: BoxDecoration(
+          gradient: _isLoading
+              ? null
+              : const LinearGradient(
+                  colors: [kPrimaryColor, kAccentColor, kGradientEndColor]),
+          color: _isLoading ? Colors.grey.shade400 : null,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          alignment: Alignment.center,
+          child: _isLoading
+              ? const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : const Text(
+                  "LOGIN",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSignUpLink(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Text(
+          "Não tem uma conta?",
+          style: TextStyle(
+            color: Colors.grey.shade700,
+            fontSize: 16.0,
+          ),
+        ),
+        TextButton(
+          onPressed: _isLoading
+              ? null
+              : () {
+                  Navigator.push(
+                      // Pode ser pushReplacement se não quiser voltar para login
+                      context,
+                      MaterialPageRoute(builder: (context) => const SignUp()));
+                },
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            // foregroundColor: kAccentColor,
+          ),
+          child: const Text(
+            "Inscreva-se",
+            style: TextStyle(
+                color: kAccentColor,
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdminLoginLink(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Text(
+          "É administrador?",
+          style: TextStyle(
+            color: Colors.grey.shade700,
+            fontSize: 16.0,
+          ),
+        ),
+        TextButton(
+          onPressed: _isLoading
+              ? null
+              : () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const AdminLogin()));
+                },
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            // foregroundColor: kPrimaryColor,
+          ),
+          child: const Text(
+            "Login ADM",
+            style: TextStyle(
+                color: kPrimaryColor, // Cor diferente para ADM
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
     );
   }
 }
