@@ -2,8 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sistema_mapeamento_de_materiais/Admin/admin_login.dart'; // Seu import
 import 'package:sistema_mapeamento_de_materiais/pages/home.dart'; // Seu import
-// import 'package:sistema_mapeamento_de_materiais/pages/onboarding.dart'; // Removido se não usado aqui
 import 'package:sistema_mapeamento_de_materiais/pages/signup.dart'; // Seu import
+import 'package:sistema_mapeamento_de_materiais/services/shared_pref.dart'; // <<< IMPORT ADICIONADO
 // Import para a tela de "Esqueci minha senha", se você tiver uma.
 // import 'package:sistema_mapeamento_de_materiais/pages/forgot_password.dart';
 
@@ -39,10 +39,8 @@ class _LogInState extends State<LogIn> {
   Future<void> userLogin() async {
     // Atribuir valores dos controllers antes de usar
     // É mais seguro ler diretamente dos controllers no momento do uso
-    // ou usar onChanged como no SignUp.dart para manter mail e password atualizados.
-    // Para este exemplo, vamos ler diretamente.
-    final currentEmail = emailcontroller.text.trim();
-    final currentPassword = passwordcontroller.text.trim();
+    final String currentEmail = emailcontroller.text.trim();
+    final String currentPassword = passwordcontroller.text.trim();
 
     if (currentEmail.isEmpty || currentPassword.isEmpty) {
       if (mounted) {
@@ -62,8 +60,21 @@ class _LogInState extends State<LogIn> {
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: currentEmail, password: currentPassword);
+      // <<< MODIFICADO para obter UserCredential
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+              email: currentEmail, password: currentPassword);
+
+      // --- INÍCIO DA CORREÇÃO ---
+      // Obter o ID do usuário logado
+      String firebaseUserId = userCredential.user!.uid;
+
+      // Salvar o ID do usuário no SharedPreferences
+      await SharedpreferenceHelper().saveUserId(firebaseUserId);
+
+      // Opcional: Salvar outros dados como email, se necessário
+      // await SharedpreferenceHelper().saveUserEmail(currentEmail);
+      // --- FIM DA CORREÇÃO ---
 
       if (!mounted) return;
       // Opcional: Mostrar SnackBar de sucesso
@@ -81,16 +92,17 @@ class _LogInState extends State<LogIn> {
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       String message;
-      if (e.code == 'user-not-found') {
-        message = "Nenhum usuário encontrado para este e-mail.";
-      } else if (e.code == 'wrong-password') {
-        message = "Senha incorreta.";
+      // <<< Códigos de erro atualizados para Firebase mais recente
+      if (e.code == 'user-not-found' ||
+          e.code == 'wrong-password' ||
+          e.code == 'invalid-credential') {
+        message = "E-mail ou senha inválidos!";
       } else if (e.code == 'invalid-email') {
         message = "O formato do e-mail é inválido.";
       } else if (e.code == 'too-many-requests') {
         message = "Muitas tentativas de login. Tente novamente mais tarde.";
       } else {
-        message = "Erro ao realizar login. Verifique suas credenciais.";
+        message = "Erro ao realizar login. Tente novamente.";
         print("Firebase Auth Exception (Login): ${e.message} (${e.code})");
       }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -247,18 +259,11 @@ class _LogInState extends State<LogIn> {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, informe o E-mail';
                   }
-                  if (!value.endsWith('@ufrpe.br') &&
-                      !value.endsWith('@gmail.com')) {
-                    // Permite @ufrpe.br ou @gmail.com para admin
-                    // Para admin, você pode ter uma validação diferente ou nenhuma restrição de domínio.
-                    // Adapte esta lógica se necessário para diferenciar admin de usuário comum.
-                    // Se o admin_login é separado, esta validação pode ser mais restrita.
-                    // Para este exemplo genérico, vamos manter a validação mais flexível aqui.
-                    // Se for estritamente @ufrpe.br para usuários normais:
-                    // if (!value.endsWith('@ufrpe.br')) {
-                    //   return 'E-mail deve ser do domínio @ufrpe.br';
-                    // }
-                  }
+                  // Adapte esta lógica se necessário para diferenciar admin de usuário comum.
+                  // Se o admin_login é separado, esta validação pode ser mais restrita.
+                  // if (!value.endsWith('@ufrpe.br')) {
+                  //   return 'E-mail deve ser do domínio @ufrpe.br';
+                  // }
                   final emailRegex = RegExp(
                       r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
                   if (!emailRegex.hasMatch(value)) {
@@ -266,7 +271,6 @@ class _LogInState extends State<LogIn> {
                   }
                   return null;
                 },
-                // onChanged: (value) => mail = value, // Opcional se ler direto do controller
               ),
               SizedBox(height: screenHeight * 0.025),
               _buildTextFormField(
@@ -294,7 +298,6 @@ class _LogInState extends State<LogIn> {
                   }
                   return null;
                 },
-                // onChanged: (value) => password = value, // Opcional
               ),
               SizedBox(height: screenHeight * 0.015),
               _buildForgotPasswordLink(context), // Link de "Esqueceu a senha?"
@@ -321,13 +324,11 @@ class _LogInState extends State<LogIn> {
     String? Function(String?)? validator,
     bool obscureText = false,
     Widget? suffixIcon,
-    // ValueChanged<String>? onChanged, // Adicionado para consistência com SignUp se necessário
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
-      // onChanged: onChanged,
       style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: labelText,
@@ -388,14 +389,12 @@ class _LogInState extends State<LogIn> {
               },
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
-          // foregroundColor: kAccentColor.withOpacity(0.8),
         ),
         child: Text(
           "Esqueceu a Senha?",
           style: TextStyle(
             color: kAccentColor.withOpacity(0.9),
             fontSize: 15.0,
-            // fontWeight: FontWeight.w500,
           ),
         ),
       ),
@@ -417,22 +416,21 @@ class _LogInState extends State<LogIn> {
           ? null
           : () {
               if (_formkey.currentState!.validate()) {
-                // As variáveis mail e password são atualizadas pelos controllers ou onChanged.
-                // Se não estiver usando onChanged, atribua aqui:
-                // setState(() {
-                //   mail = emailcontroller.text;
-                //   password = passwordcontroller.text;
-                // });
                 userLogin();
               }
             },
       child: Ink(
         decoration: BoxDecoration(
           gradient: _isLoading
-              ? null
+              ? null // Sem gradiente durante o loading
               : const LinearGradient(
-                  colors: [kPrimaryColor, kAccentColor, kGradientEndColor]),
-          color: _isLoading ? Colors.grey.shade400 : null,
+                  colors: [kPrimaryColor, kAccentColor],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+          color: _isLoading
+              ? Colors.grey.shade400
+              : null, // Cor cinza durante o loading
           borderRadius: BorderRadius.circular(30),
         ),
         child: Container(
@@ -440,20 +438,20 @@ class _LogInState extends State<LogIn> {
           alignment: Alignment.center,
           child: _isLoading
               ? const SizedBox(
-                  height: 24,
                   width: 24,
+                  height: 24,
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    color: Colors.white,
                     strokeWidth: 2.5,
                   ),
                 )
               : const Text(
-                  "LOGIN",
+                  'LOGIN',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18.0,
+                    fontSize: 17.0,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
+                    letterSpacing: 1.1,
                   ),
                 ),
         ),
@@ -465,32 +463,29 @@ class _LogInState extends State<LogIn> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Text(
-          "Não tem uma conta?",
-          style: TextStyle(
-            color: Colors.grey.shade700,
-            fontSize: 16.0,
-          ),
+        const Text(
+          "Não tem uma conta? ",
+          style: TextStyle(color: Colors.black54, fontSize: 16.0),
         ),
-        TextButton(
-          onPressed: _isLoading
+        GestureDetector(
+          onTap: _isLoading
               ? null
               : () {
                   Navigator.push(
-                      // Pode ser pushReplacement se não quiser voltar para login
                       context,
-                      MaterialPageRoute(builder: (context) => const SignUp()));
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              const SignUp())); // Navega para SignUp
                 },
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            // foregroundColor: kAccentColor,
-          ),
-          child: const Text(
-            "Inscreva-se",
+          child: Text(
+            "Cadastre-se",
             style: TextStyle(
-                color: kAccentColor,
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold),
+              color: kAccentColor,
+              fontSize: 16.5,
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.underline,
+              decorationColor: kAccentColor,
+            ),
           ),
         ),
       ],
@@ -498,38 +493,28 @@ class _LogInState extends State<LogIn> {
   }
 
   Widget _buildAdminLoginLink(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Text(
-          "É administrador?",
-          style: TextStyle(
-            color: Colors.grey.shade700,
-            fontSize: 16.0,
-          ),
+    return TextButton(
+      onPressed: _isLoading
+          ? null
+          : () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const AdminLogin())); // Navega para AdminLogin
+            },
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        // foregroundColor: kPrimaryColor.withOpacity(0.8),
+      ),
+      child: Text(
+        "Entrar como Administrador",
+        style: TextStyle(
+          color: kPrimaryColor.withOpacity(0.9),
+          fontSize: 15.5,
+          fontWeight: FontWeight.w500,
         ),
-        TextButton(
-          onPressed: _isLoading
-              ? null
-              : () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const AdminLogin()));
-                },
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            // foregroundColor: kPrimaryColor,
-          ),
-          child: const Text(
-            "Login ADM",
-            style: TextStyle(
-                color: kPrimaryColor, // Cor diferente para ADM
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
