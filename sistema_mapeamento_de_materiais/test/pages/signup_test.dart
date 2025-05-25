@@ -26,7 +26,7 @@ void main() {
     expect(find.byType(TextFormField), findsNWidgets(3));
 
     // 2. Encontrar o botão de submit
-    final submitButton = find.text('CRIE SUA CONTA');
+    final submitButton = find.text("CRIAR CONTA");
     await tester.ensureVisible(submitButton);
 
     // 3. Testar validação de campos vazios
@@ -35,8 +35,8 @@ void main() {
 
     // Verificar mensagens de erro com rolagem se necessário
     final errorFinders = [
-      find.text('Por favor informe o Nome'),
-      find.text('Por favor informe o E-mail'),
+      find.text("Por favor, informe o Nome"),
+      find.text("Por favor, informe o E-mail"),
       find.text('Campo obrigatório')
     ];
 
@@ -52,7 +52,7 @@ void main() {
     await tester.enterText(formFields.at(2), 'SenhaForte123@');
 
     // 5. Testar navegação para Login
-    final loginButton = find.text('Vá para o Login');
+    final loginButton = find.text("Faça Login");
     await tester.ensureVisible(loginButton);
     await tester.tap(loginButton);
     await tester.pumpAndSettle();

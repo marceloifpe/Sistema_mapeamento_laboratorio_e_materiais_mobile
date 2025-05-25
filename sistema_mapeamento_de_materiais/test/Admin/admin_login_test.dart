@@ -26,36 +26,37 @@ void main() {
     expect(find.byType(TextFormField), findsNWidgets(2));
 
     // 2. Testar validação de campos vazios
-    await tester.tap(find.text('Entrar'));
+    await tester.tap(find.text("ENTRAR"));
     await tester.pumpAndSettle();
-    expect(find.text('Campo obrigatório'), findsNWidgets(2));
+    expect(find.text("Por favor, informe o E-mail"), findsOneWidget);
+    expect(find.text('Por favor, informe a Senha'), findsOneWidget);
 
     // 3. Testar email inválido
     await tester.enterText(find.byType(TextFormField).at(0), 'emailinvalido');
-    await tester.tap(find.text('Entrar'));
+    await tester.tap(find.text("ENTRAR"));
     await tester.pumpAndSettle();
-    expect(find.text('Digite um e-mail válido'), findsOneWidget);
+    expect(find.text("Formato de e-mail inválido"), findsOneWidget);
 
     // 4. Testar email não-admin
     await tester.enterText(find.byType(TextFormField).at(0), 'user@ufrpe.br');
     await tester.enterText(find.byType(TextFormField).at(1), 'senha123');
-    await tester.tap(find.text('Entrar'));
+    await tester.tap(find.text("ENTRAR"));
     await tester.pumpAndSettle();
-    expect(find.text('Apenas o email admin@ufrpe.br pode acessar!'),
+    expect(find.text("Acesso restrito ao e-mail de administrador."),
         findsOneWidget);
 
     // 5. Testar navegação para login de professor
-    final professorFinder = find.text('Login Professor');
+    final userLoginFinder = find.text("Login de Usuário");
 
     // Se não estiver visível, fazer scroll
-    if (tester.getRect(professorFinder).bottom >
+    if (tester.getRect(userLoginFinder).bottom >
         tester.binding.window.physicalSize.height) {
       await tester.drag(
           find.byType(SingleChildScrollView), const Offset(0, -200));
       await tester.pumpAndSettle();
     }
 
-    await tester.tap(professorFinder);
+    await tester.tap(userLoginFinder);
     await tester.pumpAndSettle(const Duration(seconds: 2));
     expect(find.byType(LogIn), findsOneWidget);
 
